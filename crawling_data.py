@@ -31,7 +31,7 @@ def duplicate(name_list, name):
 
 
 # get infomation for page restauant 
-def get_info(url,info_list):
+def get_info(url,info_list, name_list):
     res = requests.get(url,headers = user_header)
     bs = BeautifulSoup(res.text, 'html.parser')
     bs.prettify()
@@ -94,7 +94,7 @@ for district in url_district:
 
     while url:
         #get info of each page
-        url = get_info(url,info_list)
+        url = get_info(url,info_list, name_list)
 
     excel(info_list)
     
