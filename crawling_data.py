@@ -14,14 +14,12 @@ url_district = ['causeway-bay','mong-kok','central','tsim-sha-tsui','yuen-long',
 #write to excel
 
 def excel(info_list):
-    local_path=r'c:\Users\Chan Kin Yan\Desktop\ZOE\BUSI\ISOM\ISOM3400\project\restaurants.xlsx'
-    wb = openpyxl.load_workbook(local_path)
+    wb = openpyxl.Workbook()
     sheet = wb.active; sheet.title = "restaurant_info"
     sheet.append(['name', 'price', 'bookmark', 'happy', 'sad', 'food_type','location'])
     for i in info_list:
         sheet.append(i)
-    wb.save(local_path)
-
+    wb.save('restaurant_info_6Districts')
 
 #check duplication
 def duplicate(name_list, name):
