@@ -1,4 +1,3 @@
-from numpy.core.numeric import ones_like
 from selenium import webdriver
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.keys import Keys
@@ -27,14 +26,14 @@ def duplicate(name_list, name):
 #panda data
 mainframe = pd.DataFrame({'name':[],'price':[],'bookmark':[],'happy':[],'sad':[],'food_type':[],'location':[]})
 def panda_data(oneres):
-    addrow = pd.DataFrame([oneres],columns=['name','price','bookmark','happy','sad','food_type','location'])
+    addrow = pd.DataFrame([oneres],columns=['name','price','bookmark','happy','sad','food_type','location']) #adding additional row
     global mainframe
     mainframe=mainframe.append(addrow,ignore_index = True)
 
 
 #get info
-def get_info(bs, name_list):
-
+def get_info(bs, district):
+    global name_list
     item_list =  bs.find_all('section',class_='content-wrapper')
 
     #get info of each restaurant
@@ -44,32 +43,33 @@ def get_info(bs, name_list):
         try:
             price = item.find('div',{'class':'icon-info icon-info-food-price'}).span.string
         except AttributeError:
-            price = -1
+            continue
         
         try:
             bookmark = item.find('div',{'class':'text bookmarkedUserCount js-bookmark-count'}).get("data-count")
         except AttributeError:
-            bookmark = -1
+            continue
             
         try:
             sad = item.find('span',{'class':'score highlight'}).string
         except AttributeError:
-            sad = -1
+            continue
         
         try:
             happy = item.find('span',{'class':'score score-big highlight'}).string
         except AttributeError:
-            happy = -1
+            continue
         
         try:
             food_type = item.find('li').string
         except AttributeError:
-            food_type = -1
+            continue
 
         try:
             location = item.find('div',{'class':'icon-info address'}).a.string
+            if location != district: continue
         except AttributeError:
-            location = -1
+            continue
         
 
         #check duplication
@@ -79,6 +79,7 @@ def get_info(bs, name_list):
 
 #main
 cookie_pressed = False
+name_list = []
 for district in url_district:
     #find search box
     try:
@@ -91,21 +92,20 @@ for district in url_district:
         print('error'); driver.quit()
 
     #ready to get info
-    info_list = [];name_list = []
-    endsearch = False; page = 1; 
+    endsearch = False; page = 1; info_list = []
     
     while not endsearch:
 
         bs = BeautifulSoup(driver.page_source, 'html.parser')
         bs.prettify()
-        get_info(bs,name_list)
+        get_info(bs,district)
        
         #go to next page
         #cookies
         try:
             if (page == 1 and not cookie_pressed ):
                 print('cookie pressing')
-                cookie = W(driver, 2).until(E.presence_of_element_located((By.XPATH,'//div[@id="cookies-agreement"]/div/button')))
+                cookie = W(driver, 2).until(E.presence_of_element_located((By.XPATH,'//*[@id="cookies-agreement"]/div/button')))
                 type(cookie)
                 cookie.click()
                 cookie_pressed = True
@@ -119,24 +119,21 @@ for district in url_district:
             actions = ActionChains(driver)
             actions.move_to_element(nextpage).perform()
         except:
-            print('search ended')
             endsearch = True
             break
        #click on next page
         if not nextpage:
-            print('search ended')
             endsearch = True
         else:
             page +=1
             nextpage.click()
             time.sleep(2)
 
+    print('done',district)
+
 driver.quit()
 
 #dataframe to excel
+
 mainframe.to_excel('restaurant_info_6Districts.xlsx',sheet_name='restaurant info')
         
-        
-    
-
-
